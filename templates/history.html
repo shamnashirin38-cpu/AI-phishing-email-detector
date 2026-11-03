@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Scan History | AI Phishing Detection{% endblock %}
+{% block page_title %}Security Incident & Scan History{% endblock %}
+
+{% block content %}
+<div class="card" style="margin-bottom: 24px;">
+  <!-- Filter & Action Controls -->
+  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 20px;">
+    <!-- Search Bar -->
+    <div style="flex-grow: 1; max-width: 400px; min-width: 240px;">
+      <input type="text" id="history-search-input" class="form-input" placeholder="🔍 Search sender, subject, findings...">
+    </div>
+
+    <!-- Filter Dropdowns -->
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+      <select id="filter-category" class="form-select" style="width: auto;">
+        <option value="all">All Risk Categories</option>
+        <option value="Low">Low Risk</option>
+        <option value="Medium">Medium Risk</option>
+        <option value="High">High Risk</option>
+        <option value="Critical">Critical Risk</option>
+      </select>
+
+      <select id="filter-verdict" class="form-select" style="width: auto;">
+        <option value="all">All Verdicts</option>
+        <option value="Phishing">Phishing</option>
+        <option value="Suspicious">Suspicious</option>
+        <option value="Safe">Safe</option>
+      </select>
+
+      <button id="clear-all-history-btn" class="btn btn-outline-danger btn-sm">
+        🗑️ Clear All
+      </button>
+    </div>
+  </div>
+
+  <!-- Table Container -->
+  <div class="table-responsive">
+    <table class="custom-table" id="history-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Timestamp</th>
+          <th>Sender</th>
+          <th>Subject</th>
+          <th>Risk Score</th>
+          <th>Verdict</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="history-table-body">
+        <tr>
+          <td colspan="7" style="text-align: center; padding: 32px; color: var(--text-muted);">
+            Loading scan history records...
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination Controls -->
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; font-size: 13px; color: var(--text-secondary);">
+    <div id="history-count-text">Showing scans</div>
+    <div style="display: flex; gap: 8px;">
+      <button id="prev-page-btn" class="btn btn-secondary btn-sm" disabled>← Previous</button>
+      <span id="page-indicator" style="align-self: center; padding: 0 8px; font-weight: 600;">Page 1</span>
+      <button id="next-page-btn" class="btn btn-secondary btn-sm" disabled>Next →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Clear All Confirmation Modal -->
+<div id="clear-confirm-modal" class="modal-overlay">
+  <div class="modal-content">
+    <div style="font-size: 32px; margin-bottom: 12px; color: var(--color-critical);">⚠️</div>
+    <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 8px;">Clear All Scan History?</h3>
+    <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 24px; line-height: 1.5;">
+      This action will permanently delete all stored email scan reports from your local SQLite database. This operation cannot be undone.
+    </p>
+    <div style="display: flex; justify-content: flex-end; gap: 12px;">
+      <button id="cancel-clear-btn" class="btn btn-secondary">Cancel</button>
+      <button id="confirm-clear-btn" class="btn btn-danger">Yes, Delete All Records</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/history.js') }}"></script>
+{% endblock %}

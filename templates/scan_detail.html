@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block title %}Scan Report #{{ scan.id }} | AI Phishing Detection{% endblock %}
+{% block page_title %}Security Incident Report #{{ scan.id }}{% endblock %}
+
+{% block content %}
+<!-- Action Bar -->
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+  <a href="{{ url_for('main.history_view') }}" class="btn btn-secondary btn-sm">
+    ← Back to History
+  </a>
+
+  <div style="display: flex; gap: 10px;">
+    <a href="{{ url_for('main.export_scan', scan_id=scan.id, format_type='txt') }}" class="btn btn-secondary btn-sm">
+      📄 Download TXT
+    </a>
+    <a href="{{ url_for('main.export_scan', scan_id=scan.id, format_type='json') }}" class="btn btn-secondary btn-sm">
+      📦 Download JSON
+    </a>
+    <button id="delete-this-scan-btn" data-id="{{ scan.id }}" class="btn btn-outline-danger btn-sm">
+      🗑️ Delete Report
+    </button>
+  </div>
+</div>
+
+<!-- Header Card -->
+<div class="card" style="margin-bottom: 24px;">
+  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 16px;">
+    <div>
+      <span class="badge {% if scan.verdict == 'Phishing' %}badge-phishing{% elif scan.verdict == 'Suspicious' %}badge-suspicious{% else %}badge-safe{% endif %}" style="font-size: 13px; margin-bottom: 8px;">
+        {{ scan.verdict }}
+      </span>
+      <h2 style="font-size: 20px; font-weight: 700;">{{ scan.subject or "(No Subject)" }}</h2>
+      <div style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">
+        From: <strong style="color: var(--text-primary);">{{ scan.sender or "(Not provided)" }}</strong>
+      </div>
+    </div>
+    <div style="text-align: right; font-size: 12px; color: var(--text-muted);">
+      <div>Scan Timestamp</div>
+      <div style="font-weight: 600; color: var(--text-secondary);">{{ scan.timestamp }}</div>
+    </div>
+  </div>
+
+  <!-- Score & Breakdown -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-top: 20px;">
+    <div class="score-circle-wrapper">
+      <div class="score-circle {% if scan.risk_score >= 75 %}critical{% elif scan.risk_score >= 50 %}high{% elif scan.risk_score >= 25 %}medium{% else %}low{% endif %}">
+        <span class="score-number">{{ scan.risk_score }}</span>
+        <span class="score-total">/ 100</span>
+      </div>
+      <div>
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+          <span class="badge {% if scan.risk_score >= 75 %}badge-critical{% elif scan.risk_score >= 50 %}badge-high{% elif scan.risk_score >= 25 %}badge-medium{% else %}badge-low{% endif %}">
+            {{ scan.risk_category }} Risk
+          </span>
+        </div>
+        <p style="font-size: 13px; color: var(--text-secondary);">
+          Rule Score: <strong>{{ scan.rule_score }}/60</strong> • AI Score: <strong>{{ scan.ai_score or 0 }}/40</strong>
+        </p>
+      </div>
+    </div>
+
+    <!-- AI Overview -->
+    <div style="background-color: var(--bg-secondary); border-radius: var(--radius-md); border: 1px solid var(--border-color); padding: 18px;">
+      <h4 style="font-size: 13px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px;">
+        AI Threat Model Summary
+      </h4>
+      <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5;">
+        {{ scan.ai_analysis.reasoning or "No AI commentary recorded for this scan." }}
+      </p>
+      {% if scan.ai_analysis.confidence %}
+      <div style="margin-top: 10px; font-size: 12px; color: var(--color-safe);">
+        AI Certainty: <strong>{{ (scan.ai_analysis.confidence * 100)|round|int }}%</strong>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Indicators Section -->
+<div class="card" style="margin-bottom: 24px;">
+  <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 16px;">
+    🔍 Detected Threat Indicators ({{ scan.indicators|length }})
+  </h3>
+
+  {% if scan.indicators %}
+    {% for ind in scan.indicators %}
+    <div class="indicator-item">
+      <div class="indicator-header">
+        <div class="indicator-title">
+          <span>⚠️ {{ ind.name }}</span>
+        </div>
+        <span class="badge {% if ind.severity == 'critical' %}badge-critical{% elif ind.severity == 'high' %}badge-high{% else %}badge-medium{% endif %}">
+          {{ ind.severity }} ({{ ind.points }} pts)
+        </span>
+      </div>
+      <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 8px;">
+        {{ ind.description }}
+      </p>
+      {% if ind.evidence %}
+      <div>
+        <span style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Matched Evidence:</span>
+        <div style="margin-top: 4px;">
+          {% for ev in ind.evidence %}
+          <span class="evidence-pill">{{ ev }}</span>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  {% else %}
+    <div style="color: var(--color-safe); font-size: 13px; padding: 12px 0;">
+      ✅ No overt rule indicators flagged in this message.
+    </div>
+  {% endif %}
+</div>
+
+<!-- Recommended Defensive Actions -->
+<div class="card" style="margin-bottom: 24px;">
+  <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 14px; color: var(--color-safe);">
+    🛡️ Recommended Defensive Actions
+  </h3>
+  <ul style="list-style: none; display: flex; flex-direction: column; gap: 8px; font-size: 13px;">
+    {% for act in scan.recommended_actions %}
+    <li style="padding: 10px 14px; background-color: var(--bg-secondary); border-radius: var(--radius-sm); border-left: 3px solid var(--accent-cyan);">
+      {{ act }}
+    </li>
+    {% else %}
+    <li style="color: var(--text-muted);">Standard email vigilance recommended.</li>
+    {% endfor %}
+  </ul>
+</div>
+
+<!-- Full Email Body Monospace Box -->
+<div class="card">
+  <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 12px;">
+    ✉️ Raw Email Body Inspected
+  </h3>
+  <pre style="background-color: var(--bg-input); padding: 18px; border-radius: var(--radius-md); border: 1px solid var(--border-color); color: var(--text-primary); font-family: var(--font-mono); font-size: 12px; white-space: pre-wrap; word-break: break-word; max-height: 400px; overflow-y: auto;">{{ scan.full_body }}</pre>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const deleteBtn = document.getElementById("delete-this-scan-btn");
+  if (deleteBtn) {
+    deleteBtn.addEventListener("click", async () => {
+      const id = deleteBtn.getAttribute("data-id");
+      if (!confirm(`Are you sure you want to permanently delete Scan #${id}?`)) return;
+
+      try {
+        const resp = await fetch(`/api/scan/${id}`, { method: "DELETE" });
+        const res = await resp.json();
+        if (res.success) {
+          alert("Scan deleted successfully.");
+          window.location.href = "/history";
+        } else {
+          alert(res.error || "Failed to delete scan.");
+        }
+      } catch (err) {
+        alert("Error deleting scan.");
+      }
+    });
+  }
+});
+</script>
+{% endblock %}

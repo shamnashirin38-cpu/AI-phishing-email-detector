@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}AI-Powered Phishing Email Detection System{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22%22><text y=%2222%22 font-size=%2220%22>🛡️</text></svg>">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <!-- Sidebar Navigation -->
+  <aside class="sidebar">
+    <a href="{{ url_for('main.index') }}" class="sidebar-brand">
+      <div class="brand-icon">🛡️</div>
+      <div class="brand-text">
+        <div class="brand-title">PhishDetector</div>
+        <div class="brand-subtitle">AI CYBER DEFENSE</div>
+      </div>
+    </a>
+
+    <ul class="sidebar-menu">
+      <li>
+        <a href="{{ url_for('main.index') }}" class="nav-link {% if active_page == 'dashboard' %}active{% endif %}">
+          <span class="nav-icon">📊</span>
+          <span class="nav-text">Dashboard</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('main.analyze_view') }}" class="nav-link {% if active_page == 'analyze' %}active{% endif %}">
+          <span class="nav-icon">🔍</span>
+          <span class="nav-text">Analyze Email</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('main.history_view') }}" class="nav-link {% if active_page == 'history' %}active{% endif %}">
+          <span class="nav-icon">📜</span>
+          <span class="nav-text">Scan History</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('main.about_view') }}" class="nav-link {% if active_page == 'about' %}active{% endif %}">
+          <span class="nav-icon">💡</span>
+          <span class="nav-text">About & Viva Guide</span>
+        </a>
+      </li>
+    </ul>
+
+    <div class="sidebar-footer">
+      <div>Engine: <strong>Rules + Ollama AI</strong></div>
+      <div style="margin-top: 4px; font-size: 11px;">College Academic Project 2026</div>
+    </div>
+  </aside>
+
+  <!-- Main Wrapper -->
+  <div class="main-wrapper">
+    <!-- Top Header -->
+    <header class="top-header">
+      <div class="header-title-wrap">
+        <h1 class="header-page-title">{% block page_title %}Security Operations Center{% endblock %}</h1>
+      </div>
+      <div class="header-actions">
+        <!-- Live Ollama Status Badge -->
+        <div id="ollama-status-badge" class="ollama-pill" title="Click to refresh Ollama connection status">
+          <span class="status-dot {% if ollama_status and ollama_status.available and ollama_status.model_installed %}dot-online{% elif ollama_status and ollama_status.status == 'model_missing' %}dot-model-missing{% else %}dot-offline{% endif %}"></span>
+          <span id="ollama-status-text">
+            {% if ollama_status and ollama_status.available and ollama_status.model_installed %}
+              Ollama: Online ({{ ollama_status.selected_model }})
+            {% elif ollama_status and ollama_status.status == 'model_missing' %}
+              Ollama: Model Missing
+            {% else %}
+              Ollama: Offline (Rule Fallback)
+            {% endif %}
+          </span>
+          <span style="font-size: 11px; opacity: 0.7;">🔄</span>
+        </div>
+
+        <a href="{{ url_for('main.analyze_view') }}" class="btn btn-primary btn-sm">
+          <span>+ Scan Email</span>
+        </a>
+      </div>
+    </header>
+
+    <!-- Page Content -->
+    <main class="page-container">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" style="position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 10px;"></div>
+
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

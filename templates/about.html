@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block title %}About & Viva Guide | AI Phishing Detection{% endblock %}
+{% block page_title %}Academic Project Overview & Viva Defense Guide{% endblock %}
+
+{% block content %}
+<!-- Overview Card -->
+<div class="card" style="margin-bottom: 24px; border-left: 4px solid var(--accent-cyan);">
+  <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 8px;">
+    🎓 AI-Powered Phishing Email Detection System
+  </h2>
+  <p style="font-size: 14px; color: var(--text-secondary); line-height: 1.6;">
+    An advanced, privacy-first cybersecurity system developed for academic evaluation and real-world triage. It combines deterministic pattern heuristics with on-premise Large Language Model (LLM) reasoning via Ollama to detect zero-day spear-phishing, credential theft, and social engineering attacks without transmitting sensitive email content to third-party cloud APIs.
+  </p>
+</div>
+
+<!-- Architecture Diagram Card -->
+<div class="card" style="margin-bottom: 24px;">
+  <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 16px;">
+    🏗️ System Architecture & Data Flow
+  </h3>
+  <div style="background-color: var(--bg-secondary); padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border-color); font-family: var(--font-mono); font-size: 12px; line-height: 1.8; color: #38bdf8; overflow-x: auto;">
+[User Submission (Sender, Subject, Body)]
+                  │
+                  ▼
+   [Input Validation & Link Defanging]
+                  │
+         ┌────────┴────────┐
+         ▼                 ▼
+ [Layer 1: Rule Engine]    [Layer 2: Ollama Local AI]
+ (0 to 60 Points)          (0 to 40 Points)
+  • IP Host Links           • Contextual Reasoning
+  • Urgency Deadlines       • Social Engineering Intent
+  • Password / OTP Solicit  • Obfuscation Detection
+  • Wire / Crypto Demands   • Strict JSON Validation
+  • Domain Impersonation    • Offline Fallback Safeguard
+         │                 │
+         └────────┬────────┘
+                  ▼
+    [Unified Risk Scoring Engine]
+     Formula: Total = min(100, Rule + AI)
+     Categories: Low (0-24) | Med (25-49) | High (50-74) | Crit (75-100)
+                  │
+                  ▼
+ [SQLite Storage (Parameterized Queries)] ──▶ [Export: TXT / JSON]
+  </div>
+</div>
+
+<!-- 5 Core Indicators Explanation -->
+<div class="card" style="margin-bottom: 24px;">
+  <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 16px;">
+    🔍 5 Core Rule-Based Threat Indicators (0–60 Points)
+  </h3>
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+    <div style="background-color: var(--bg-secondary); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+      <strong style="color: var(--accent-cyan); font-size: 14px;">1. Suspicious URLs (Max 15 pts)</strong>
+      <p style="font-size: 12px; color: var(--text-secondary); margin-top: 6px;">
+        Identifies raw IP hosts (bypassing DNS), URL shorteners concealing destinations, high-risk TLDs (.xyz, .top, .tk), deceptive subdomains, and embedded '@' credential tricks.
+      </p>
+    </div>
+
+    <div style="background-color: var(--bg-secondary); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+      <strong style="color: var(--accent-cyan); font-size: 14px;">2. Urgent / Coercive Language (Max 10 pts)</strong>
+      <p style="font-size: 12px; color: var(--text-secondary); margin-top: 6px;">
+        Flags psychological manipulation tactics such as imminent account termination threats, 24-hour ultimatums, fake legal summons, or fabricated security breach notifications.
+      </p>
+    </div>
+
+    <div style="background-color: var(--bg-secondary); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+      <strong style="color: var(--accent-cyan); font-size: 14px;">3. Password & OTP Harvesting (Max 15 pts)</strong>
+      <p style="font-size: 12px; color: var(--text-secondary); margin-top: 6px;">
+        Intercepts direct credential solicitation, password resets, PIN prompts, and one-time password (OTP/2FA) extraction. Legitimate service providers never request OTPs via email.
+      </p>
+    </div>
+
+    <div style="background-color: var(--bg-secondary); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+      <strong style="color: var(--accent-cyan); font-size: 14px;">4. Financial & Payment Fraud (Max 10 pts)</strong>
+      <p style="font-size: 12px; color: var(--text-secondary); margin-top: 6px;">
+        Detects untraceable cryptocurrency wallet addresses, gift card purchases (iTunes/Amazon), payroll direct-deposit redirect scams, and unsolicited overdue invoice alerts.
+      </p>
+    </div>
+
+    <div style="background-color: var(--bg-secondary); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color); grid-column: 1 / -1;">
+      <strong style="color: var(--accent-cyan); font-size: 14px;">5. Sender Spoofing & Domain Mismatches (Max 10 pts)</strong>
+      <p style="font-size: 12px; color: var(--text-secondary); margin-top: 6px;">
+        Exposes Display Name spoofing (e.g. "PayPal Support" sent from a generic gmail.com or unrelated domain), brand typosquatting (e.g. micros0ft.com, paypa1.com), and anomalous disposable mail sender infrastructure.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- Viva Voce Preparation Guide -->
+<div class="card" style="margin-bottom: 24px;">
+  <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 16px; color: #f59e0b;">
+    🎯 College Viva Voce Defense Guide (Common Questions & Answers)
+  </h3>
+
+  <div style="display: flex; flex-direction: column; gap: 16px;">
+    <!-- Q1 -->
+    <div style="background-color: var(--bg-secondary); padding: 16px; border-radius: var(--radius-md); border-left: 3px solid var(--accent-cyan);">
+      <h4 style="font-size: 14px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">
+        Q1: Why use a hybrid approach (Rules + AI) instead of AI alone?
+      </h4>
+      <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5;">
+        <strong>Answer:</strong> Standalone LLMs can hallucinate, suffer from non-deterministic variance, and can be bypassed by adversarial prompt injection or character obfuscation. Deterministic rule engines provide instant, reproducible, and verifiable evidence for known IoCs (Indicators of Compromise). Meanwhile, the LLM provides semantic reasoning to identify subtle social engineering tactics that rigid regex patterns miss. Combining both yields high precision and explainability.
+      </p>
+    </div>
+
+    <!-- Q2 -->
+    <div style="background-color: var(--bg-secondary); padding: 16px; border-radius: var(--radius-md); border-left: 3px solid var(--accent-cyan);">
+      <h4 style="font-size: 14px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">
+        Q2: What is the difference between AI Confidence and Threat Risk Score?
+      </h4>
+      <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5;">
+        <strong>Answer:</strong> <em>Risk Score (0–100)</em> measures how dangerous and malicious the email is based on threat signals. <em>AI Confidence (0–100%)</em> measures the statistical certainty of the model regarding its classification. A routine university newsletter has a Risk Score of 0, but the AI may have 99% confidence that it is benign.
+      </p>
+    </div>
+
+    <!-- Q3 -->
+    <div style="background-color: var(--bg-secondary); padding: 16px; border-radius: var(--radius-md); border-left: 3px solid var(--accent-cyan);">
+      <h4 style="font-size: 14px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">
+        Q3: How does the application handle Ollama server failure?
+      </h4>
+      <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5;">
+        <strong>Answer:</strong> The architecture implements graceful degradation. If Ollama is offline or times out, the application never crashes. The system catches connection errors, notes that AI is offline, and normalizes the deterministic rule score (0–60 scaled to 0–100) with an advisory warning in the UI.
+      </p>
+    </div>
+
+    <!-- Q4 -->
+    <div style="background-color: var(--bg-secondary); padding: 16px; border-radius: var(--radius-md); border-left: 3px solid var(--accent-cyan);">
+      <h4 style="font-size: 14px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">
+        Q4: Why run Ollama locally instead of OpenAI or cloud APIs?
+      </h4>
+      <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5;">
+        <strong>Answer:</strong> Privacy and compliance. Corporate and personal emails contain confidential intellectual property, personally identifiable information (PII), and financial records. Transmitting email contents to third-party cloud APIs violates strict privacy policies (GDPR, HIPAA). Ollama runs 100% on the local workstation with zero telemetry.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- Technology Stack Summary -->
+<div class="card">
+  <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 16px;">
+    💻 Technology Stack & Project Specifications
+  </h3>
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; font-size: 13px;">
+    <div><strong>Backend:</strong> Python 3.11+ with Flask</div>
+    <div><strong>Local AI Engine:</strong> Ollama API (Llama 3.2 3B)</div>
+    <div><strong>Database:</strong> SQLite with Parameterized SQL</div>
+    <div><strong>Frontend:</strong> HTML5, CSS3, Vanilla JS</div>
+    <div><strong>Testing:</strong> pytest with Mocked AI Fixtures</div>
+    <div><strong>Deployment:</strong> Standalone on localhost:5000</div>
+  </div>
+</div>
+{% endblock %}

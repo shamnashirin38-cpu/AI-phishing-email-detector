@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+
+{% block title %}Analyze Email | AI Phishing Detection{% endblock %}
+{% block page_title %}Email Security Analysis{% endblock %}
+
+{% block content %}
+<!-- Advisory Warning Top Bar -->
+<div class="alert-notice">
+  <strong>⚠️ Advisory Notice:</strong> This automated scanner evaluates phishing indicators using rule heuristics and local LLM inference. All links are automatically defanged for security.
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr; gap: 28px;">
+  <!-- Analysis Form Card -->
+  <div class="card" id="form-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+      <div>
+        <h2 style="font-size: 18px; font-weight: 700;">📨 Submit Email for Threat Inspection</h2>
+        <p style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">
+          Paste full email headers and body, or select a pre-configured sample for instant evaluation.
+        </p>
+      </div>
+
+      <!-- Quick Sample Loader Buttons -->
+      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <span style="font-size: 12px; color: var(--text-muted); align-self: center; font-weight: 600;">Load Sample:</span>
+        {% for sample in samples %}
+        <button type="button" class="btn btn-secondary btn-sm sample-btn" data-sample-id="{{ sample.id }}">
+          {{ sample.title }}
+        </button>
+        {% endfor %}
+      </div>
+    </div>
+
+    <form id="email-analysis-form">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+        <!-- Sender Email -->
+        <div class="form-group">
+          <label class="form-label" for="sender-input">
+            Sender Email / Header <span style="font-size: 11px; color: var(--text-muted);">(e.g. Display Name &lt;user@domain.com&gt;)</span>
+          </label>
+          <input type="text" id="sender-input" name="sender" class="form-input" placeholder="e.g. PayPal Support <alerts@support-paypa1.xyz>">
+        </div>
+
+        <!-- Subject -->
+        <div class="form-group">
+          <label class="form-label" for="subject-input">Email Subject Line</label>
+          <input type="text" id="subject-input" name="subject" class="form-input" placeholder="e.g. URGENT: Your Account Has Been Suspended">
+        </div>
+      </div>
+
+      <!-- Body -->
+      <div class="form-group">
+        <label class="form-label" for="body-input">
+          Email Body Content <span style="color: var(--color-critical);">*</span>
+          <span style="font-size: 11px; color: var(--text-muted);">(Plain text or HTML email body)</span>
+        </label>
+        <textarea id="body-input" name="body" class="form-textarea" placeholder="Paste the complete text or HTML of the email here..." required></textarea>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+        <button type="button" id="clear-form-btn" class="btn btn-secondary">
+          <span>🧹 Clear Form</span>
+        </button>
+
+        <button type="submit" id="analyze-submit-btn" class="btn btn-primary" style="padding: 12px 28px; font-size: 15px;">
+          <span>⚡ Analyze Email Threat</span>
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Loading State (Hidden by default) -->
+  <div id="loading-state" class="card" style="display: none; text-align: center; padding: 48px 24px;">
+    <div class="spinner" style="margin: 0 auto 20px auto;"></div>
+    <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 8px;">Analyzing Threat Vectors...</h3>
+    <p id="loading-status-text" style="color: var(--text-secondary); font-size: 14px;">
+      Running rule-based regex patterns and communicating with local Ollama AI...
+    </p>
+
+    <!-- Progress Steps Checklist -->
+    <div style="max-width: 450px; margin: 28px auto 0 auto; text-align: left; font-size: 13px; color: var(--text-secondary);">
+      <div id="step-1" style="padding: 6px 0;">⏳ 1. Sanitizing and parsing email input...</div>
+      <div id="step-2" style="padding: 6px 0;">⏳ 2. Evaluating 5 rule-based threat vectors (0–60 pts)...</div>
+      <div id="step-3" style="padding: 6px 0;">⏳ 3. Querying local Ollama AI model (0–40 pts)...</div>
+      <div id="step-4" style="padding: 6px 0;">⏳ 4. Synthesizing risk score & defensive actions...</div>
+    </div>
+  </div>
+
+  <!-- Results Section (Hidden until analysis returns) -->
+  <div id="results-card" class="card" style="display: none; border-top: 4px solid var(--accent-cyan);">
+    <!-- Verdict Banner -->
+    <div id="verdict-banner" style="display: flex; justify-content: space-between; align-items: center; padding: 18px 24px; border-radius: var(--radius-md); margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <span id="verdict-icon" style="font-size: 32px;">🚨</span>
+        <div>
+          <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; opacity: 0.85;">FINAL VERDICT</div>
+          <div id="verdict-title" style="font-size: 24px; font-weight: 800;">PHISHING DETECTED</div>
+        </div>
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <a id="export-txt-btn" href="#" class="btn btn-secondary btn-sm">📄 Export TXT</a>
+        <a id="export-json-btn" href="#" class="btn btn-secondary btn-sm">📦 Export JSON</a>
+        <a id="view-scan-link" href="#" class="btn btn-primary btn-sm">Full Scan Record →</a>
+      </div>
+    </div>
+
+    <!-- Threat Score & Score Breakdown Grid -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 24px;">
+      <!-- Big Score Dial -->
+      <div class="score-circle-wrapper">
+        <div id="score-circle" class="score-circle critical">
+          <span id="risk-score-value" class="score-number">85</span>
+          <span class="score-total">/ 100</span>
+        </div>
+        <div>
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+            <span id="risk-category-badge" class="badge badge-critical">Critical Risk</span>
+          </div>
+          <p id="risk-category-desc" style="font-size: 13px; color: var(--text-secondary); line-height: 1.4;">
+            Critical security threat! Direct credential harvesting, coercive threats, or malicious URLs detected.
+          </p>
+        </div>
+      </div>
+
+      <!-- Score Breakdown Points -->
+      <div style="background-color: var(--bg-secondary); border-radius: var(--radius-md); border: 1px solid var(--border-color); padding: 18px;">
+        <h4 style="font-size: 13px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px; letter-spacing: 0.5px;">
+          Unified Risk Formula Breakdown
+        </h4>
+        <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border-subtle); font-size: 13px;">
+          <span>Deterministic Rule Score:</span>
+          <strong id="rule-score-breakdown" style="color: var(--accent-cyan);">45 / 60 pts</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border-subtle); font-size: 13px;">
+          <span>Ollama AI Score:</span>
+          <strong id="ai-score-breakdown" style="color: #38bdf8;">40 / 40 pts</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border-subtle); font-size: 13px;">
+          <span>AI Analytical Confidence:</span>
+          <strong id="ai-confidence-value" style="color: var(--color-safe);">95%</strong>
+        </div>
+        <div style="font-size: 11px; color: var(--text-muted); margin-top: 10px;" id="scoring-note-text">
+          Hybrid Assessment: 0–60 Rule-based + 0–40 AI-based.
+        </div>
+      </div>
+    </div>
+
+    <!-- Educational Callout: AI Confidence vs Risk Score -->
+    <div style="background-color: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: var(--radius-md); padding: 14px 18px; margin-bottom: 24px; font-size: 12px;">
+      <strong style="color: #60a5fa;">💡 Viva Concept Note (Risk Score vs. AI Confidence):</strong>
+      <span style="color: var(--text-secondary);">
+        <strong>Risk Score (0–100)</strong> reflects the severity and maliciousness of threats.
+        <strong>AI Confidence (0–100%)</strong> reflects how certain the model is about its verdict. A completely safe email can have 98% confidence with a risk score of 0.
+      </span>
+    </div>
+
+    <!-- Detected Threat Indicators -->
+    <div style="margin-bottom: 24px;">
+      <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
+        <span>🔍 Detected Threat Indicators</span>
+        <span id="indicators-count-badge" class="badge badge-medium">0 Found</span>
+      </h3>
+      <div id="indicators-container">
+        <!-- Dynamic indicators inserted here -->
+      </div>
+    </div>
+
+    <!-- AI Reasoning Card -->
+    <div style="background-color: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 18px; margin-bottom: 24px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <h4 style="font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+          <span>🤖 Ollama Local AI Reasoning</span>
+          <span id="ai-model-tag" class="badge badge-safe" style="font-size: 10px;">llama3.2:3b</span>
+        </h4>
+        <span id="ai-status-indicator" style="font-size: 12px; color: var(--text-muted);">Local Execution</span>
+      </div>
+      <p id="ai-reasoning-text" style="font-size: 13px; color: var(--text-primary); line-height: 1.6;">
+        <!-- AI reasoning narrative -->
+      </p>
+    </div>
+
+    <!-- Recommended Defensive Actions -->
+    <div style="background-color: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 18px;">
+      <h4 style="font-size: 14px; font-weight: 700; margin-bottom: 12px; color: var(--color-safe);">
+        🛡️ Recommended Defensive Actions
+      </h4>
+      <ul id="recommendations-list" style="list-style: none; display: flex; flex-direction: column; gap: 8px; font-size: 13px;">
+        <!-- Dynamic recommendations inserted here -->
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/analyze.js') }}"></script>
+{% endblock %}
